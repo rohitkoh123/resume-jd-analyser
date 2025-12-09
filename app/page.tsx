@@ -1,65 +1,185 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState } from "react";
+
+type AnalysisResult = {
+  match_score?: number;
+  job_summary?: string[];
+  resume_summary?: string[];
+  matched_points?: string[];
+  missing_skills?: string[];
+  suggested_resume_bullets?: string[];
+};
+
+export default function HomePage() {
+  const [jobDescription, setJobDescription] = useState("");
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAnalyse = async () => {
+    setError(null);
+    setResult(null);
+
+    if (!jobDescription.trim() || !resumeFile) {
+      setError("Please paste a job description and upload a resume PDF.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("jobDescription", jobDescription);
+      formData.append("resume", resumeFile); // <-- PDF file
+
+      const res = await fetch("/api/analyse", {
+        method: "POST",
+        body: formData, // <-- no JSON headers, sending multipart/form-data
+      });
+
+      if (!res.ok) {
+        // try to read error from server if available
+        let message = "Analysis failed";
+        try {
+          const errJson = await res.json();
+          if (errJson?.error) message = errJson.error;
+        } catch {
+          /* ignore */
+        }
+        throw new Error(message);
+      }
+
+      const data = await res.json();
+      setResult(data);
+    } catch (e: any) {
+      setError(e.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen max-w-4xl mx-auto p-6 space-y-6">
+      <header className="space-y-2">
+        <h1 className="text-2xl font-bold">
+          Resume vs Job Description Analyser
+        </h1>
+        <p className="text-sm text-gray-600">
+          Paste a job description and upload your resume PDF to see how well
+          they match, what&apos;s missing, and suggested improvements.
+        </p>
+      </header>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        {/* Job Description textarea (unchanged) */}
+        <div className="flex flex-col gap-2">
+          <label className="font-semibold text-sm">Job Description</label>
+          <textarea
+            className="border rounded-md p-2 min-h-[220px] text-sm"
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            placeholder="Paste the full job description here..."
+          />
+        </div>
+
+        {/* Resume PDF upload */}
+        <div className="flex flex-col gap-2">
+          <label className="font-semibold text-sm">Resume (PDF)</label>
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setResumeFile(file);
+            }}
+            className="border rounded-md p-2 text-sm"
+          />
+          <p className="text-xs text-gray-500">
+            Upload a single PDF file. The server will extract the text for
+            analysis.
           </p>
+          {resumeFile && (
+            <p className="text-xs text-gray-700">
+              Selected: <span className="font-medium">{resumeFile.name}</span>
+            </p>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+
+      <div className="flex items-center gap-4">
+        <button
+          onClick={handleAnalyse}
+          disabled={loading}
+          className="px-4 py-2 rounded-md border font-medium disabled:opacity-60"
+        >
+          {loading ? "Analysing..." : "Analyse Match"}
+        </button>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+      </div>
+
+      {result && (
+        <section className="space-y-4 border rounded-md p-4">
+          <h2 className="text-lg font-semibold">Analysis Result</h2>
+
+          <div>
+            <p className="text-3xl font-bold">
+              {result.match_score ?? "-"}{" "}
+              <span className="text-base">/ 100</span>
+            </p>
+            <p className="text-xs text-gray-500">Overall match score</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <h3 className="font-semibold text-sm mb-1">Job Summary</h3>
+              <ul className="text-sm list-disc list-inside space-y-1">
+                {result.job_summary?.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                )) || <li>No summary</li>}
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-1">Resume Summary</h3>
+              <ul className="text-sm list-disc list-inside space-y-1">
+                {result.resume_summary?.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                )) || <li>No summary</li>}
+              </ul>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <h3 className="font-semibold text-sm mb-1">Matched Points</h3>
+              <ul className="text-sm list-disc list-inside space-y-1">
+                {result.matched_points?.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                )) || <li>—</li>}
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm mb-1">Missing Skills</h3>
+              <ul className="text-sm list-disc list-inside space-y-1">
+                {result.missing_skills?.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                )) || <li>—</li>}
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-sm mb-1">
+              Suggested Resume Bullets
+            </h3>
+            <ul className="text-sm list-disc list-inside space-y-1">
+              {result.suggested_resume_bullets?.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              )) || <li>—</li>}
+            </ul>
+          </div>
+        </section>
+      )}
+    </main>
   );
 }

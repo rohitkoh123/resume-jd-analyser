@@ -134,17 +134,25 @@ export default function HomePage() {
             <div>
               <h3 className="font-semibold text-sm mb-1">Job Summary</h3>
               <ul className="text-sm list-disc list-inside space-y-1">
-                {result.job_summary?.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                )) || <li>No summary</li>}
+                {result.job_summary?.length ? (
+                  result.job_summary.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))
+                ) : (
+                  <li>No summary</li>
+                )}
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-sm mb-1">Resume Summary</h3>
               <ul className="text-sm list-disc list-inside space-y-1">
-                {result.resume_summary?.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                )) || <li>No summary</li>}
+                {result.resume_summary?.length ? (
+                  result.resume_summary.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))
+                ) : (
+                  <li>No summary</li>
+                )}
               </ul>
             </div>
           </div>
@@ -153,17 +161,25 @@ export default function HomePage() {
             <div>
               <h3 className="font-semibold text-sm mb-1">Matched Points</h3>
               <ul className="text-sm list-disc list-inside space-y-1">
-                {result.matched_points?.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                )) || <li>—</li>}
+                {result.matched_points?.length ? (
+                  result.matched_points.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))
+                ) : (
+                  <li>—</li>
+                )}
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-sm mb-1">Missing Skills</h3>
               <ul className="text-sm list-disc list-inside space-y-1">
-                {result.missing_skills?.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                )) || <li>—</li>}
+                {result.missing_skills?.length ? (
+                  result.missing_skills.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))
+                ) : (
+                  <li>—</li>
+                )}
               </ul>
             </div>
           </div>
@@ -173,9 +189,13 @@ export default function HomePage() {
               Suggested Resume Bullets
             </h3>
             <ul className="text-sm list-disc list-inside space-y-1">
-              {result.suggested_resume_bullets?.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              )) || <li>—</li>}
+              {result.suggested_resume_bullets?.length ? (
+                result.suggested_resume_bullets.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))
+              ) : (
+                <li>—</li>
+              )}
             </ul>
           </div>
         </section>

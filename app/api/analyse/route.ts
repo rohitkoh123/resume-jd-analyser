@@ -24,32 +24,35 @@ export async function POST(req: NextRequest) {
     // const resumeText = await extractTextFromPdf(pdfBytes);
 
     // For now, pretend resumeText = "mock text"
-    const resumeText = "This is mock parsed PDF text";
+    // const resumeText = "This is mock parsed PDF text";
+
+    // 🔥 REAL KESTRA CALL (Ping Test)
+    const kestraUrl = process.env.KESTRA_URL!;
+    // console.log("hiiiii", kestraUrl);
+    const webhookKey = process.env.KESTRA_WEBHOOK_KEY!;
+
+    const webhookUrl = `${kestraUrl}/api/v1/main/executions/webhook/hackathon.test/ping/${webhookKey}`;
+
+    console.log("Calling Kestra Webhook:", webhookUrl);
+
+    // For ping test you don't need any body, but you can send an empty object too
+    const kestraResponse = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ test: "hello-from-frontend" }), // optional
+    });
+
+    // // Kestra returns execution details
+    const result = await kestraResponse.json();
+
+    console.log("Kestra Ping Response:", result);
+
+    // // Return directly back to frontend
+    return NextResponse.json(result);
 
     // TODO: Replace this mock with a real call to your AI/Kestra workflow
-    const mockResult = {
-      match_score: 72,
-      job_summary: [
-        "Hiring for a QA engineer in a modern SaaS environment.",
-        "Requires experience with test automation tools and CI/CD pipelines.",
-      ],
-      resume_summary: [
-        "Candidate has experience with automated testing and scripting.",
-        "Some exposure to cloud-native tools and version control.",
-      ],
-      matched_points: [
-        "Automation testing experience.",
-        "Comfortable working in agile teams.",
-      ],
-      missing_skills: ["Playwright", "SSRS", "Advanced CI/CD configuration"],
-      suggested_resume_bullets: [
-        "Implemented automated end-to-end tests for core product workflows.",
-        "Collaborated with developers to integrate automated tests into CI pipelines.",
-        "Documented test cases and contributed to improving QA coverage reporting.",
-      ],
-    };
-
-    return NextResponse.json(mockResult);
   } catch (err: any) {
     console.error("Error analysing resume:", err);
     return NextResponse.json(

@@ -37,6 +37,7 @@ export default function HomePage() {
         method: "POST",
         body: formData, // <-- no JSON headers, sending multipart/form-data
       });
+      console.log("ressss", res);
 
       if (!res.ok) {
         // try to read error from server if available

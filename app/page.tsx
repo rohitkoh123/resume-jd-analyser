@@ -11,6 +11,13 @@ type AnalysisResult = {
   suggested_resume_bullets?: string[];
 };
 
+/**
+ * Render the Resume vs Job Description Analyser page with inputs for a job description and a PDF resume, an action to run analysis, and a results display.
+ *
+ * The component manages input state, file upload, loading and error states, posts the job description and resume to `/api/analyse`, and displays the returned analysis (match score, summaries, matched/missing items, and suggested resume bullets).
+ *
+ * @returns The React element for the analyser page, including input controls, the Analyse button, status messages, and a structured analysis result section when available.
+ */
 export default function HomePage() {
   const [jobDescription, setJobDescription] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);

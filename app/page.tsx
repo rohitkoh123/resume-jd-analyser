@@ -35,34 +35,60 @@ export default function HomePage() {
     }
 
     setLoading(true);
+
     try {
       const formData = new FormData();
       formData.append("jobDescription", jobDescription);
-      formData.append("resume", resumeFile); // <-- PDF file
+      formData.append("resume", resumeFile);
 
+      // 1) Start analysis (POST)
       const res = await fetch("/api/analyse", {
         method: "POST",
-        body: formData, // <-- no JSON headers, sending multipart/form-data
+        body: formData,
       });
-      console.log("ressss", res);
+
+      const resJson = await res.json(); // ✅ read once
 
       if (!res.ok) {
-        // try to read error from server if available
-        let message = "Analysis failed";
-        try {
-          const errJson = await res.json();
-          if (errJson?.error) message = errJson.error;
-        } catch {
-          /* ignore */
-        }
-        throw new Error(message);
+        throw new Error(resJson.error || "Analysis failed");
       }
 
-      const data = await res.json();
-      setResult(data);
+      const { id } = resJson;
+      if (!id) {
+        throw new Error("No execution id returned from server");
+      }
+
+      // 2) Poll for completion (GET /api/analyse?id=...)
+      const interval = setInterval(async () => {
+        try {
+          const r = await fetch(`/api/analyse?id=${id}`);
+          const data = await r.json();
+
+          if (!r.ok) {
+            throw new Error(data.error || "Failed while polling");
+          }
+
+          if (data.done) {
+            clearInterval(interval);
+            console.log("Final result:", data.result);
+
+            setResult(data.result); // ✅ show in UI
+            setLoading(false); // ✅ stop spinner
+            console.log(">>>>");
+            console.log(result?.match_score);
+            console.log(result?.job_summary);
+            console.log(result?.missing_skills);
+          }
+        } catch (pollErr: any) {
+          clearInterval(interval);
+          console.error("Polling error:", pollErr);
+          setError(pollErr.message || "Error while checking analysis status");
+          setLoading(false);
+        }
+      }, 1000);
     } catch (e: any) {
+      console.error(e);
       setError(e.message || "Something went wrong");
-    } finally {
       setLoading(false);
     }
   };

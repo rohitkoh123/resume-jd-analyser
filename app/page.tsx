@@ -2,6 +2,9 @@
 
 import React, { useState } from "react";
 
+const MAX_PDF_MB = 4.5;
+const MAX_BYTES = MAX_PDF_MB * 1024 * 1024;
+
 type AnalysisResult = {
   match_score?: number;
   job_summary?: string[];
@@ -160,7 +163,30 @@ export default function HomePage() {
             type="file"
             accept="application/pdf"
             onChange={(e) => {
+              setError(null);
+
               const file = e.target.files?.[0] || null;
+              if (!file) {
+                setResumeFile(null);
+                return;
+              }
+
+              if (file.type !== "application/pdf") {
+                setResumeFile(null);
+                e.target.value = "";
+                setError("Please upload a PDF file.");
+                return;
+              }
+
+              if (file.size > MAX_BYTES) {
+                setResumeFile(null);
+                e.target.value = "";
+                setError(
+                  `PDF too large. Please upload a file under ${MAX_PDF_MB}MB.`
+                );
+                return;
+              }
+
               setResumeFile(file);
             }}
             className="border rounded-md p-2 text-sm"

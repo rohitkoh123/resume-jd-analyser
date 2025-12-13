@@ -70,18 +70,18 @@ export default function HomePage() {
 
           if (data.done) {
             clearInterval(interval);
-            console.log("Final result:", data.result);
+            //("Final result:", data.result);
 
             const raw = data.result || {};
 
-            console.log("Rawww", raw);
-            console.log("RAW TYPE:", typeof raw);
-            console.log(
-              "RAW KEYS:",
-              raw && typeof raw === "object" ? Object.keys(raw) : raw
-            );
-            console.log("RAW VALUE:", raw);
-            console.log("RAW.job_summary:", (raw as any)?.job_summary);
+            //("Rawww", raw);
+            //("RAW TYPE:", typeof raw);
+            //(
+            //   "RAW KEYS:",
+            //   raw && typeof raw === "object" ? Object.keys(raw) : raw
+            // );
+            //("RAW VALUE:", raw);
+            //("RAW.job_summary:", (raw as any)?.job_summary);
 
             const rawObj = typeof raw === "string" ? JSON.parse(raw) : raw;
 
@@ -111,7 +111,7 @@ export default function HomePage() {
                 ? rawObj.suggested_resume_bullets
                 : [],
             };
-            console.log("Normalisedd", normalized);
+            //("Normalisedd", normalized);
             setResult(normalized);
             setLoading(false);
           }

@@ -16,11 +16,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // console.log(">>>>>>>>", jobDescription);
+    // //(">>>>>>>>", jobDescription);
 
     // File -> ArrayBuffer -> Buffer
 
-    console.log("resumeFile", resumeFile);
+    //("resumeFile", resumeFile);
     const arrayBuffer = await resumeFile.arrayBuffer();
     const pdfBuffer = Buffer.from(arrayBuffer);
 
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     // 🔥 REAL KESTRA CALL (Ping Test)
     const kestraUrl = process.env.KESTRA_URL!;
-    // console.log("hiiiii", kestraUrl);
+    // //("hiiiii", kestraUrl);
     const webhookKey = process.env.KESTRA_WEBHOOK_KEY!;
 
     if (!kestraUrl || !webhookKey) {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       );
     }
     const webhookUrl = `${kestraUrl}/api/v1/main/executions/webhook/hackathon.ai/resume_jd_gemini_echo/${webhookKey}?wait=true`;
-    console.log("Calling Kestra Webhook:", webhookUrl);
+    //("Calling Kestra Webhook:", webhookUrl);
 
     // For ping test you don't need any body, but you can send an empty object too
     const kestraResponse = await fetch(webhookUrl, {
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     }
 
     const execution = await kestraResponse.json();
-    console.log("Kestra execution:>>>>>>>", execution);
+    //("Kestra execution:>>>>>>>", execution);
 
     // extraction left
     return NextResponse.json(execution);

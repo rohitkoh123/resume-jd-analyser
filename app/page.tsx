@@ -58,7 +58,7 @@ export default function HomePage() {
         throw new Error("No execution id returned from server");
       }
 
-      // 2) Poll for completion (GET /api/analyse?id=...)
+      // 2) Poll for completion
       const interval = setInterval(async () => {
         try {
           const r = await fetch(`/api/analyse?id=${id}`);
@@ -72,12 +72,48 @@ export default function HomePage() {
             clearInterval(interval);
             console.log("Final result:", data.result);
 
-            setResult(data.result); // ✅ show in UI
-            setLoading(false); // ✅ stop spinner
-            console.log(">>>>");
-            console.log(result?.match_score);
-            console.log(result?.job_summary);
-            console.log(result?.missing_skills);
+            const raw = data.result || {};
+
+            console.log("Rawww", raw);
+            console.log("RAW TYPE:", typeof raw);
+            console.log(
+              "RAW KEYS:",
+              raw && typeof raw === "object" ? Object.keys(raw) : raw
+            );
+            console.log("RAW VALUE:", raw);
+            console.log("RAW.job_summary:", (raw as any)?.job_summary);
+
+            const rawObj = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+            // 🔧 NORMALISE SHAPE HERE
+            const normalized: AnalysisResult = {
+              match_score:
+                rawObj.match_score ?? rawObj.overall_match_score ?? undefined,
+              job_summary: Array.isArray(rawObj.job_summary)
+                ? rawObj.job_summary
+                : rawObj.job_summary
+                ? [rawObj.job_summary]
+                : [],
+              resume_summary: Array.isArray(rawObj.resume_summary)
+                ? rawObj.resume_summary
+                : rawObj.resume_summary
+                ? [rawObj.resume_summary]
+                : [],
+              matched_points: Array.isArray(rawObj.matched_points)
+                ? rawObj.matched_points
+                : [],
+              missing_skills: Array.isArray(rawObj.missing_skills)
+                ? rawObj.missing_skills
+                : [],
+              suggested_resume_bullets: Array.isArray(
+                rawObj.suggested_resume_bullets
+              )
+                ? rawObj.suggested_resume_bullets
+                : [],
+            };
+            console.log("Normalisedd", normalized);
+            setResult(normalized);
+            setLoading(false);
           }
         } catch (pollErr: any) {
           clearInterval(interval);
